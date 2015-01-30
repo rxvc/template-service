@@ -1,0 +1,43 @@
+import com.fasterxml.jackson.dataformat.yaml.snakeyaml.Yaml
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.3.2'
+    }
+}
+
+project.ext {
+    configuraionFile = 'hello-world-service.yml'
+}
+
+task expandirConfig(type: Copy) {
+    def dataBaseHost = getEnviromentVariable("$System.env.IP_BASE_DATOS_PREPRO", "localhost")
+
+    from('.')
+    include('**/*.yml.template')
+    rename { String fileName -> fileName.replace('.template', '') }
+    expand(host: dataBaseHost)
+    into('.')
+}
+
+task configureService(dependsOn: expandirConfig) {
+    doLast {
+        def yamlConfig = new Yaml().load(new File(configuraionFile).newReader())
+        def dbConfig = yamlConfig.database
+        project.ext['flyway.user'] = dbConfig.user
+        project.ext['flyway.password'] = dbConfig.password
+        project.ext['flyway.url'] = dbConfig.url
+        project.ext['flyway.schemas'] = dbConfig.properties.'hibernate.default_schema'
+    }
+}
+
+def getEnviromentVariable(enviromentVariable, defaultValue) {
+    def nullValue = "null"
+    if (enviromentVariable == nullValue) {
+        return defaultValue
+    }
+    return enviromentVariable
+}

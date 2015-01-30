@@ -1,0 +1,43 @@
+database:
+  driverClass: org.postgresql.Driver
+  user: factronica
+  password: Passw0rd
+  url: jdbc:postgresql://${host}/senescyt
+  properties:
+    charSet: UTF-8
+    hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate.show_sql: false
+    hibernate.default_schema: hello-world-service
+  maxWaitForConnection: 1s
+  validationQuery: "/* DB Health Check */ SELECT 1"
+  minSize: 1
+  initialSize: 1
+  maxSize: 2
+  checkConnectionWhileIdle: false
+
+logging:
+  level: INFO
+
+  appenders:
+    - type: console
+      threshold: INFO
+      target: stderr
+      timeZone: EST
+
+    - type: file
+      threshold: INFO
+      currentLogFilename: ./logs/servicio.log
+      # When the log file rotates, the archived log will be renamed to this and gzipped. The
+      # %d is replaced with the previous day (yyyy-MM-dd). Custom rolling windows can be created
+      # by passing a SimpleDateFormat-compatible format as an argument: "%d{yyyy-MM-dd-hh}".
+      archivedLogFilenamePattern: ./logs/servicio-%d.log.gz
+      archivedFileCount: 5
+      timeZone: EST
+
+server:
+  adminConnectors:
+    - type: http
+      port: 8081
+  applicationConnectors:
+    - type: http
+      port: 8080
